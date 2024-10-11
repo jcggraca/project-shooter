@@ -55,18 +55,20 @@ def reset_game():
   player_x = screen_width // 2 - player_width // 2
   game_over = False
 
+def quit_game():
+  pygame.quit()
+  sys.exit()
+
 while True:
   for event in pygame.event.get():
     if event.type == pygame.QUIT:
-      pygame.quit()
-      sys.exit()
+      quit_game()
     if event.type == pygame.KEYDOWN:
       if game_over:
         if event.key == pygame.K_RETURN:  # Press Enter to restart
           reset_game()
         elif event.key == pygame.K_ESCAPE:  # Press ESC to quit
-          pygame.quit()
-          sys.exit()
+          quit_game()
       if event.key == pygame.K_ESCAPE and not game_over:
         paused = not paused
       if event.key == pygame.K_SPACE and not paused and not game_over:
