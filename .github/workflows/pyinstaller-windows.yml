@@ -1,11 +1,10 @@
-
-name: Package Application with Pyinstaller
+name: Package exe with PyInstaller - Windows
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   build:
@@ -14,8 +13,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
-    - name: Package Application
+    - name: PyInstaller Windows
       uses: JackMcKew/pyinstaller-action-windows@main
       with:
         path: src
