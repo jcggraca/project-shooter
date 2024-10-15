@@ -3,14 +3,21 @@ import sys
 import random
 
 pygame.init()
+pygame.mixer.init()
+
+# Load sounds
+loser_sound = pygame.mixer.Sound("../assets/sounds/loser.ogg")
+pygame.mixer.music.load("../assets/sounds/music_1.mp3")
 
 screen_width = 800
 screen_height = 600
 screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("A Shooter Game")
+game_name = "Jack: The last warrior"
+pygame.display.set_caption(game_name)
 
 font = pygame.font.Font(None, 36)
 pause_font = pygame.font.Font(None, 72)
+menu_font = pygame.font.Font(None, 64)
 
 clock = pygame.time.Clock()
 
@@ -18,7 +25,10 @@ clock = pygame.time.Clock()
 score = 0
 paused = False
 game_over = False
-show_controls = True  # New variable to show controls
+show_controls = False
+in_main_menu = True
+
+played_loser_sound = False
 
 # Player settings
 player_width = 50
@@ -26,10 +36,12 @@ player_height = 60
 player_x = screen_width // 2 - player_width // 2
 player_y = screen_height - player_height - 10
 player_speed = 5
+fire_rate = 500
+last_shot_time = 0
 
 # Bullet settings
-bullet_width = 5
-bullet_height = 10
+bullet_width = 15
+bullet_height = 25
 bullet_speed = 7
 bullets = []
 
@@ -47,95 +59,178 @@ enemy_spawn_time = 2000
 def check_collision(rect1, rect2):
     return rect1.colliderect(rect2)
 
-# Function to reset the game when restarting
 def reset_game():
-    global score, bullets, enemies, player_x, game_over, show_controls
+    global score, bullets, enemies, player_x, game_over, show_controls, played_loser_sound
     score = 0
     bullets = []
     enemies = []
     player_x = screen_width // 2 - player_width // 2
     game_over = False
-    show_controls = False  # Set to False when game is reset
+    show_controls = False
+    played_loser_sound = False
 
 def quit_game():
     pygame.quit()
     sys.exit()
 
 # Function to display controls
-def show_control_screen():
-    screen.fill((0, 0, 0))
-    controls_text1 = font.render("Controls:", True, (255, 255, 255))
-    controls_text2 = font.render("Left Arrow: Move Left", True, (255, 255, 255))
-    controls_text3 = font.render("Right Arrow: Move Right", True, (255, 255, 255))
-    controls_text4 = font.render("Space: Shoot", True, (255, 255, 255))
-    controls_text5 = font.render("ESC: Pause", True, (255, 255, 255))
-    controls_text6 = font.render("Press Enter to Start", True, (255, 255, 255))
+def screen_show_control():
+    screen.fill((255, 255, 255))
     
-    text_rect1 = controls_text1.get_rect(center=(screen_width // 2, screen_height // 2 - 50))
-    text_rect2 = controls_text2.get_rect(center=(screen_width // 2, screen_height // 2 - 10))
-    text_rect3 = controls_text3.get_rect(center=(screen_width // 2, screen_height // 2 + 30))
-    text_rect4 = controls_text4.get_rect(center=(screen_width // 2, screen_height // 2 + 70))
-    text_rect5 = controls_text5.get_rect(center=(screen_width // 2, screen_height // 2 + 110))
-    text_rect6 = controls_text6.get_rect(center=(screen_width // 2, screen_height // 2 + 150))
+    controls = pygame.image.load("../assets/controls.png")
+    
+    screen.blit(controls, (0, 0))
+    
+    # Display instruction for returning to main menu
+    return_text = font.render("Press ESC to Return to Main Menu", True, (0, 0, 0))
+    return_rect = return_text.get_rect(center=(screen_width // 2, screen_height - 50))
+    
+    screen.blit(return_text, return_rect)
+    
+    pygame.display.flip()
 
-    screen.blit(controls_text1, text_rect1)
-    screen.blit(controls_text2, text_rect2)
-    screen.blit(controls_text3, text_rect3)
-    screen.blit(controls_text4, text_rect4)
-    screen.blit(controls_text5, text_rect5)
-    screen.blit(controls_text6, text_rect6)
+# New function to display the main menu
+def screen_main_menu():
+    screen.fill((0, 0, 0))
+    
+    title_text = menu_font.render(game_name, True, (255, 255, 255))
+    play_text = font.render("Press Enter to Play", True, (255, 255, 255))
+    controls_text = font.render("Press C for Controls", True, (255, 255, 255))
+    quit_text = font.render("Press ESC to Quit", True, (255, 255, 255))
+    version_text = font.render("v0.2.0", True, (255, 255, 255))
+    
+    # Positioning texts
+    title_rect = title_text.get_rect(center=(screen_width // 2, screen_height // 2 - 100))
+    play_rect = play_text.get_rect(center=(screen_width // 2, screen_height // 2))
+    controls_rect = controls_text.get_rect(center=(screen_width // 2, screen_height // 2 + 50))
+    quit_rect = quit_text.get_rect(center=(screen_width // 2, screen_height // 2 + 100))
+    version_rect = version_text.get_rect(bottomright=(screen_width - 10, screen_height - 10))
+    
+    # Blit texts to the screen
+    screen.blit(title_text, title_rect)
+    screen.blit(play_text, play_rect)
+    screen.blit(controls_text, controls_rect)
+    screen.blit(quit_text, quit_rect)
+    screen.blit(version_text, version_rect)
+    
+    pygame.display.flip()
+
+
+def screen_game_over():
+    screen.fill((0, 0, 0))
+
+    game_over_text = pause_font.render("GAME OVER", True, (255, 0, 0))
+    restart_text = font.render("Press Enter to Restart or ESC to Quit", True, (255, 255, 255))
+    game_over_rect = game_over_text.get_rect(center=(screen_width // 2, screen_height // 2 - 50))
+    restart_rect = restart_text.get_rect(center=(screen_width // 2, screen_height // 2 + 50))
+    
+    screen.blit(game_over_text, game_over_rect)
+    screen.blit(restart_text, restart_rect)
 
     pygame.display.flip()
+
+
+def screen_pause():
+    screen.fill((0, 0, 0))
+    
+    # Display the paused message
+    pause_text = pause_font.render("PAUSED", True, (255, 255, 255))
+    pause_rect = pause_text.get_rect(center=(screen_width // 2, screen_height // 2 - 50))
+    screen.blit(pause_text, pause_rect)
+    
+    # Display the instructions for key presses
+    resume_text = font.render("Press Enter to Resume", True, (255, 255, 255))
+    menu_text = font.render("Press ESC to Main Menu", True, (255, 255, 255))
+    
+    resume_rect = resume_text.get_rect(center=(screen_width // 2, screen_height // 2 + 50))
+    menu_rect = menu_text.get_rect(center=(screen_width // 2, screen_height // 2 + 100))
+    
+    screen.blit(resume_text, resume_rect)
+    screen.blit(menu_text, menu_rect)
+    
+    pygame.display.flip()
+
+
+player_image = pygame.image.load("../assets/player.png")
+player_image = pygame.transform.scale(player_image, (player_width, player_height))
+
+bullet_image = pygame.image.load("../assets/arrow.png")
+bullet_image = pygame.transform.scale(bullet_image, (bullet_width, bullet_height))
+
+enemy_image = pygame.image.load("../assets/tom.png")
+enemy_image = pygame.transform.scale(enemy_image, (enemy_width, enemy_height))
+
 
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             quit_game()
+
         if event.type == pygame.KEYDOWN:
-            if game_over:
-                if event.key == pygame.K_RETURN:  # Press Enter to restart
-                    reset_game()
-                elif event.key == pygame.K_ESCAPE:  # Press ESC to quit
+            if in_main_menu:
+                if event.key == pygame.K_RETURN:  # Start the game
+                    in_main_menu = False
+                    pygame.mixer.music.play(-1)
+                elif event.key == pygame.K_c:  # Show controls
+                    show_controls = True
+                    in_main_menu = False
+                elif event.key == pygame.K_ESCAPE:  # Quit the game
                     quit_game()
-            if event.key == pygame.K_ESCAPE and not game_over:
-                paused = not paused
-            if event.key == pygame.K_SPACE and not paused and not game_over:
-                bullet_x = player_x + player_width // 2 - bullet_width // 2
-                bullet_y = player_y
-                bullets.append(pygame.Rect(bullet_x, bullet_y, bullet_width, bullet_height))
-            if show_controls and event.key == pygame.K_RETURN:  # Press Enter to start the game
-                show_controls = False  # Hide controls after starting the game
+            elif show_controls:
+                if event.key == pygame.K_ESCAPE:  # Return from controls
+                    show_controls = False
+                    in_main_menu = True
+            elif game_over:
+                if event.key == pygame.K_RETURN:  # Restart the game
+                    reset_game()
+                    pygame.mixer.music.play(-1)
+                elif event.key == pygame.K_ESCAPE:  # Quit the game
+                    quit_game()
+                    pygame.mixer.music.stop()
+            elif paused:
+                if event.key == pygame.K_RETURN:  # Resume the game
+                    paused = False
+                    pygame.mixer.music.play(-1)
+                elif event.key == pygame.K_ESCAPE:  # Go to the main menu
+                    paused = False
+                    in_main_menu = True
+            else:
+                if event.key == pygame.K_ESCAPE:  # Pause the game
+                    paused = not paused
+                    pygame.mixer.music.stop()
+                if event.key == pygame.K_SPACE and not paused and not game_over:  # Fire bullet
+                    current_time = pygame.time.get_ticks()
+                    if current_time - last_shot_time > fire_rate:
+                        bullet_x = player_x + player_width // 2 - bullet_width // 2
+                        bullet_y = player_y
+                        bullets.append(pygame.Rect(bullet_x, bullet_y, bullet_width, bullet_height))
+                        last_shot_time = current_time  # Update the last shot time
 
-    # Show controls at the beginning
+    # Main Menu Screen
+    if in_main_menu:
+        screen_main_menu()
+        clock.tick(60)
+        continue
+
+    # Show controls screen
     if show_controls:
-        show_control_screen()
+        screen_show_control()
         clock.tick(60)
         continue
 
-    # If the game is in Game Over state, show the Game Over screen
+    # Game over screen
     if game_over:
-        screen.fill((0, 0, 0))
-        
-        game_over_text = pause_font.render("GAME OVER", True, (255, 0, 0))
-        restart_text = font.render("Press Enter to Restart or ESC to Quit", True, (255, 255, 255))
-        game_over_rect = game_over_text.get_rect(center=(screen_width // 2, screen_height // 2 - 50))
-        restart_rect = restart_text.get_rect(center=(screen_width // 2, screen_height // 2 + 50))
-        
-        screen.blit(game_over_text, game_over_rect)
-        screen.blit(restart_text, restart_rect)
-
-        pygame.display.flip()
+        if not played_loser_sound:
+            loser_sound.play()
+            played_loser_sound = True 
+    
+        screen_game_over()
         clock.tick(60)
         continue
 
+    # Pause screen
     if paused:
-        screen.fill((0, 0, 0))
-        
-        pause_text = pause_font.render("PAUSED", True, (255, 255, 255))
-        pause_rect = pause_text.get_rect(center=(screen_width // 2, screen_height // 2))
-        screen.blit(pause_text, pause_rect)
-
-        pygame.display.flip()
+        screen_pause()
         clock.tick(60)
         continue
 
@@ -149,10 +244,9 @@ while True:
     # Update bullet positions
     for bullet in bullets:
         bullet.y -= bullet_speed
-    # Remove bullets outside the screen
     bullets = [bullet for bullet in bullets if bullet.y > 0]
 
-    # Update enemy positions and spawn new ones
+    # Spawn enemies
     current_time = pygame.time.get_ticks()
     if current_time - enemy_timer > enemy_spawn_time:
         enemy_x = random.randint(0, screen_width - enemy_width)
@@ -163,11 +257,9 @@ while True:
     # Update enemy positions
     for enemy in enemies[:]:
         enemy.y += enemy_speed
-
-        # Check if the enemy reached the bottom of the screen
         if enemy.y >= screen_height:
             enemies.remove(enemy)
-            score -= 1  # Decrement score when enemy passes the screen
+            score -= 1
 
     # Check for collisions
     for bullet in bullets[:]:
@@ -178,28 +270,23 @@ while True:
                 score += 1
                 break
 
-    # Check if score is below 0 to trigger Game Over
+    # Check game over condition
     if score < 0:
         game_over = True
 
-    screen.fill((0, 0, 0))
+    # Drawing the game
+    screen.fill((255, 255, 255))
+    
+    screen.blit(player_image, (player_x, player_y))
 
-    # Draw the player
-    pygame.draw.rect(screen, (0, 128, 255), (player_x, player_y, player_width, player_height))
-
-    # Draw bullets
     for bullet in bullets:
-        pygame.draw.rect(screen, (255, 255, 255), bullet)
-
-    # Draw enemies
+        screen.blit(bullet_image, bullet.topleft)
     for enemy in enemies:
-        pygame.draw.rect(screen, (255, 0, 0), enemy)
+        screen.blit(enemy_image, enemy.topleft)
 
-    # Render the score text
-    score_text = font.render(f"Score: {score}", True, (255, 255, 255))  # White text
-    score_rect = score_text.get_rect(center=(screen_width // 2, 30))  # Centered at the top
-    screen.blit(score_text, score_rect)  # Draw the text on the screen
+    score_text = font.render(f"Score: {score}", True, (0, 0, 0))
+    score_rect = score_text.get_rect(center=(screen_width // 2, 30))
+    screen.blit(score_text, score_rect)
 
     pygame.display.flip()
-    
     clock.tick(60)

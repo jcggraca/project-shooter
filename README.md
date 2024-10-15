@@ -1,4 +1,4 @@
-# Project Shooter
+# Project Shooter (WIP)
 
 ## Description
 
@@ -7,6 +7,14 @@ This is a simple shooter game created using Python and Pygame. The game involves
 This project serves as a learning experience for working with Python and Pygame, as well as game development concepts. 
 
 In the future, I plan to develop a version of this game using [Bevy](https://bevyengine.org/).
+
+## Music
+
+https://onemansymphony.bandcamp.com/album/destruction-bringer-free
+
+## Art
+
+[letuce](https://letuce.artstation.com/)
 
 ## Features
 
@@ -17,11 +25,6 @@ In the future, I plan to develop a version of this game using [Bevy](https://bev
 - Pause functionality
 - Game over screen when score is below zero
 
-## Installation
+## Roadmap
 
-To run this game, you need to have Python and Pygame installed on your computer. Follow these steps to get started:
-
-1. Clone this repository:
-   ```bash
-   git clone git@github.com:jcggraca/project-shooter.git
-   cd project-shooter
+WIP
