@@ -21,5 +21,4 @@ jobs:
         python_ver: '3.12.6'
         spec: 'src/main.spec'
         requirements: 'src/requirements.txt'
-        upload_exe_with_name: 'My executable'
-        options: --onefile, --add-data "assets:assets", --name "Jack The last warrior", --windowed 
+        upload_exe_with_name: 'Jack The Last Warrior'

@@ -14,10 +14,10 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-arrow_path = resource_path('assets/images/arrow.png')
-controls_path = resource_path('assets/images/controls.png')
-player_path = resource_path('assets/images/player.png')
-tom_path = resource_path('assets/images/tom.png')
+arrow_path = resource_path('assets/sprites/arrow.png')
+controls_path = resource_path('assets/sprites/controls.png')
+player_path = resource_path('assets/sprites/player.png')
+tom_path = resource_path('assets/sprites/tom.png')
 music_path = resource_path('assets/sounds/music_1.mp3')
 loser_sound_path = resource_path('assets/sounds/loser.ogg')
 
