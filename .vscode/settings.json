@@ -1,0 +1,12 @@
+{
+  "editor.tabSize": 4,
+  "cSpell.words": [
+    "blit",
+    "bottomright",
+    "colliderect",
+    "KEYDOWN",
+    "pygame",
+    "pyinstaller",
+    "topleft"
+  ]
+}
