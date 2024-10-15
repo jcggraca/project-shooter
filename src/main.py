@@ -6,8 +6,8 @@ pygame.init()
 pygame.mixer.init()
 
 # Load sounds
-loser_sound = pygame.mixer.Sound("../assets/sounds/loser.ogg")
-pygame.mixer.music.load("../assets/sounds/music_1.mp3")
+loser_sound = pygame.mixer.Sound("./assets/sounds/loser.ogg")
+pygame.mixer.music.load("./assets/sounds/music_1.mp3")
 
 screen_width = 800
 screen_height = 600
@@ -77,7 +77,7 @@ def quit_game():
 def screen_show_control():
     screen.fill((255, 255, 255))
     
-    controls = pygame.image.load("../assets/controls.png")
+    controls = pygame.image.load("./assets/controls.png")
     
     screen.blit(controls, (0, 0))
     
@@ -151,13 +151,13 @@ def screen_pause():
     pygame.display.flip()
 
 
-player_image = pygame.image.load("../assets/player.png")
+player_image = pygame.image.load("./assets/player.png")
 player_image = pygame.transform.scale(player_image, (player_width, player_height))
 
-bullet_image = pygame.image.load("../assets/arrow.png")
+bullet_image = pygame.image.load("./assets/arrow.png")
 bullet_image = pygame.transform.scale(bullet_image, (bullet_width, bullet_height))
 
-enemy_image = pygame.image.load("../assets/tom.png")
+enemy_image = pygame.image.load("./assets/tom.png")
 enemy_image = pygame.transform.scale(enemy_image, (enemy_width, enemy_height))
 
 
