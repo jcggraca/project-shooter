@@ -6,8 +6,8 @@ pygame.init()
 pygame.mixer.init()
 
 # Load sounds
-loser_sound = pygame.mixer.Sound("../assets/loser.ogg")
-pygame.mixer.music.load("../assets/music_1.mp3")
+loser_sound = pygame.mixer.Sound("../assets/sounds/loser.ogg")
+pygame.mixer.music.load("../assets/sounds/music_1.mp3")
 
 screen_width = 800
 screen_height = 600
